@@ -37,82 +37,47 @@ public class DefaultUserServiceImpl implements DefaultUserService {
 	@Autowired private DefaultUserService userService;
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+public ResponseEntity<Object> generateToken(UserDTO userDto) {
+	try {
+		User user = userRepo.findByUserName(userDto.getUserName());
+		if (user == null) {
+			return generateRespose("Username does not exist", HttpStatus.NOT_FOUND, null);
+		}
 
-	public String generateToken(UserDTO userDto){
 		Authentication authentication = authManager.authenticate(
 				new UsernamePasswordAuthenticationToken(userDto.getUserName(), userDto.getPassword()));
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-		return jwtGenVal.generateToken(authentication);
-	}
 
-	//the below one is to be presented, commented so that i can copy the token faster
-//public ResponseEntity<Object> generateToken(UserDTO userDto) {
-//	try {
-//		User user = userRepo.findByUserName(userDto.getUserName());
-//		if (user == null) {
-//			return generateRespose("Username does not exist", HttpStatus.NOT_FOUND, null);
-//		}
-//
-//		Authentication authentication = authManager.authenticate(
-//				new UsernamePasswordAuthenticationToken(userDto.getUserName(), userDto.getPassword()));
-//
-//		SecurityContextHolder.getContext().setAuthentication(authentication);
-//		String token = jwtGenVal.generateToken(authentication);
-//
-//		return generateRespose("Login successful", HttpStatus.OK, token);
-//
-//	} catch (Exception e) {
-//		return generateRespose("Password is wrong", HttpStatus.UNAUTHORIZED, null);
-//	}
-//}
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+		String token = jwtGenVal.generateToken(authentication);
+
+		return generateRespose("Login successful", HttpStatus.OK, token);
+
+	} catch (Exception e) {
+		return generateRespose("Password is wrong", HttpStatus.UNAUTHORIZED, null);
+	}
+}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//  the below one to be presented, for faster testing commented
-//	@Override
-//	public ResponseEntity<Object> createUser(UserDTO userRegisteredDTO) {
-//		try {
-//			// Check if username already exists
-//			if (userRepo.findByUserName(userRegisteredDTO.getUserName()) != null) {
-//				return generateRespose("Username already exists", HttpStatus.CONFLICT, null);
-//			}
-//
-//			// Check if email already exists
-//			if (userRepo.findByEmail(userRegisteredDTO.getEmail()) != null) {
-//				return generateRespose("Email already registered", HttpStatus.CONFLICT, null);
-//			}
-//
-//			if (!userRegisteredDTO.getEmail().toLowerCase().endsWith("@pentafox.in")) {
-//				return generateRespose("Provie your @pentafox.in mail id", HttpStatus.BAD_REQUEST, null);
-//			}
-//
-//			// Check if role is valid
-//			Role role = roleRepo.findByRole("ROLE_" + userRegisteredDTO.getRole());
-//			if (role == null) {
-//				return generateRespose("Invalid role specified", HttpStatus.BAD_REQUEST, null);
-//			}
-//
-//			// Create and save the new user
-//			User user = new User();
-//			user.setEmail(userRegisteredDTO.getEmail());
-//			user.setUserName(userRegisteredDTO.getUserName());
-//			user.setPassword(passwordEncoder.encode(userRegisteredDTO.getPassword()));
-//			user.setRole(role);
-//
-//			User savedUser = userRepo.save(user);
-//			return generateRespose("User created successfully", HttpStatus.CREATED, savedUser);
-//
-//		} catch (Exception e) {
-//			return generateRespose("Error creating user: " + e.getMessage(), HttpStatus.BAD_REQUEST, null);
-//		}
-//	}
 
 	@Override
 	public ResponseEntity<Object> createUser(UserDTO userRegisteredDTO) {
 		try {
+			if (userRepo.findByUserName(userRegisteredDTO.getUserName()) != null) {
+				return generateRespose("Username already exists", HttpStatus.CONFLICT, null);
+			}
+			
+			if (userRepo.findByEmail(userRegisteredDTO.getEmail()) != null) {
+				return generateRespose("Email already registered", HttpStatus.CONFLICT, null);
+			}
+
+			if (!userRegisteredDTO.getEmail().toLowerCase().endsWith("@pentafox.in")) {
+				return generateRespose("Provie your @pentafox.in mail id", HttpStatus.BAD_REQUEST, null);
+			}
+
 			Role role = roleRepo.findByRole("ROLE_" + userRegisteredDTO.getRole());
 			if (role == null) {
-				return generateResponse("Invalid role specified", HttpStatus.BAD_REQUEST, null);
+				return generateRespose("Invalid role specified", HttpStatus.BAD_REQUEST, null);
 			}
 
 			User user = new User();
@@ -122,9 +87,10 @@ public class DefaultUserServiceImpl implements DefaultUserService {
 			user.setRole(role);
 
 			User savedUser = userRepo.save(user);
-			return generateResponse("User created successfully", HttpStatus.CREATED, savedUser);
+			return generateRespose("User created successfully", HttpStatus.CREATED, savedUser);
+
 		} catch (Exception e) {
-			return generateResponse("Error creating user: " + e.getMessage(), HttpStatus.BAD_REQUEST, null);
+			return generateRespose("Error creating user: " + e.getMessage(), HttpStatus.BAD_REQUEST, null);
 		}
 	}
 
@@ -140,10 +106,7 @@ public class DefaultUserServiceImpl implements DefaultUserService {
 	@Override
 	public ResponseEntity<Object> updateCurrentUser(String username, UserDTO userDto) {
 		User existingUser = userRepo.findByUserName(username);
-//		if (existingUser == null) {
-//			return generateResponse("User not found", HttpStatus.NOT_FOUND, null);
-//		}
-		if (userDto.getEmail() != null) {//future give for user name and make the admin promote a user to admin
+		if (userDto.getEmail() != null) {
 			existingUser.setEmail(userDto.getEmail());
 		}
 		if (userDto.getPassword() != null) {
@@ -157,9 +120,6 @@ public class DefaultUserServiceImpl implements DefaultUserService {
 	@Override
 	public ResponseEntity<Object> getCurrentUser(String username) {
 		User user = userRepo.findByUserName(username);
-//		if (user == null) {
-//			return generateRespose("User not found with name", HttpStatus.NOT_FOUND,user);
-//		}
 		return generateResponse("User Details Fetched", HttpStatus.OK, user);
 	}
 
@@ -191,12 +151,4 @@ public class DefaultUserServiceImpl implements DefaultUserService {
 		map.put("data", responseobj);
 		return new ResponseEntity<>(map, st);
 	}
-//	private ResponseEntity<Object> generateRespose(String message, HttpStatus st, Object responseobj) {
-//		Map<String, Object> map = new HashMap<>();
-//		map.put("message", message);  // Keeping the typo as requested
-//		map.put("Status", st.value());
-//		map.put("data", responseobj);
-//		return new ResponseEntity<>(map, st);
-//	}
-
 }
