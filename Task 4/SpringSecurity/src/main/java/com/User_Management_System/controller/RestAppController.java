@@ -25,19 +25,9 @@ public class RestAppController {
 
 	@PostMapping("/login")
 	public String generateJwtToken(@RequestBody UserDTO userDto) throws Exception {
-//		Authentication authentication = authManager.authenticate(
-//				new UsernamePasswordAuthenticationToken(userDto.getUserName(), userDto.getPassword()));
-//		SecurityContextHolder.getContext().setAuthentication(authentication);
-//		return jwtGenVal.generateToken(authentication);
 		return sir.generateToken(userDto);
 	}
-
-//below one while presenting
-//@PostMapping("/login")
-//public ResponseEntity<Object> generateJwtToken(@RequestBody UserDTO userDto) {
-//	return sir.generateToken(userDto);
-//}
-
+	
 	@PostMapping
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public ResponseEntity<Object> createUser(@RequestBody UserDTO userDto) {
