@@ -24,7 +24,7 @@ public class RestAppController {
 	@Autowired private DefaultUserServiceImpl sir;
 
 	@PostMapping("/login")
-	public String generateJwtToken(@RequestBody UserDTO userDto) throws Exception {
+	public ResponseEntity<Object> generateJwtToken(@RequestBody UserDTO userDto) {
 		return sir.generateToken(userDto);
 	}
 	
